@@ -10,9 +10,12 @@ func main() {
 
 	var a, b int
 
-	_, err := fmt.Scanf("%d %d", &a, &b)
+	count, err := fmt.Scanf("%d %d", &a, &b)
 	if err != nil {
 		fmt.Println("Error reading input: ", err.Error())
+		if count == 1 {
+			fmt.Println("Need to input 2 numbers")
+		}
 		os.Exit(1)
 	}
 
