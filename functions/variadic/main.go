@@ -10,7 +10,7 @@ func main() {
 func average(number ...int) int {
 	var sum int
 	for i := range number {
-		sum += i
+		sum += number[i]
 	}
 
 	return sum / len(number)
