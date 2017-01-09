@@ -33,4 +33,16 @@ func main() {
 		ints = append(ints, a)
 	}
 	fmt.Println(ints)
+
+	fmt.Println(mySlice)
+	plusOne(mySlice)
+	fmt.Println(mySlice)
+}
+
+// Slice is a reference type (like map and channel)
+// What is passed, is a memory address, which is copied by value
+func plusOne(slice []int) {
+	for i := range slice {
+		slice[i]++
+	}
 }
