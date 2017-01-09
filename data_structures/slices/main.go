@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"crypto/rand"
+	"fmt"
+	"io"
+	"unsafe"
+)
 
 func main() {
 	myArray := [6]int{1, 2, 3, 4, 5}
@@ -37,6 +42,16 @@ func main() {
 	fmt.Println(mySlice)
 	plusOne(mySlice)
 	fmt.Println(mySlice)
+
+	var buffer [24]byte
+	fmt.Println(buffer)
+	sliced := buffer[:]
+	io.ReadFull(rand.Reader, sliced)
+	fmt.Println(buffer)
+
+	sliced = append(sliced, byte(1))
+	fmt.Println(buffer)
+	fmt.Println(sliced)
 }
 
 // Slice is a reference type (like map and channel)
@@ -45,4 +60,11 @@ func plusOne(slice []int) {
 	for i := range slice {
 		slice[i]++
 	}
+}
+
+// slice.go:
+type slice struct {
+	address  unsafe.Pointer
+	length   int
+	capacity int
 }
