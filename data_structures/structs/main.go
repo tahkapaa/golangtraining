@@ -8,13 +8,41 @@ type person struct {
 	age   int
 }
 
-func main() {
-	p1 := person{"Pasi", "Tähkäpää", 41}
-	persons := make([]person, 2)
-	persons[0] = p1
-	persons[1] = person{"Miia", "Nmäki", 40}
+type climber struct {
+	person
+	topGrade string
+}
 
-	for _, p := range persons {
-		fmt.Printf("Name: %s %s, Age: %d\n", p.first, p.last, p.age)
+func main() {
+	p1 := climber{
+		person{"Pasi", "Tähkäpää", 41},
+		"6c"}
+	climbers := make([]climber, 2)
+	climbers[0] = p1
+	climbers[1] = climber{
+		person{
+			first: "Miia",
+			age:   40},
+		"6a"}
+
+	for _, p := range climbers {
+		fmt.Printf("Name: %s, Age: %d Grade: %s\n", p.fullName(), p.age, p.topGrade)
 	}
+
+	p1.greeting()
+}
+
+func (c climber) greeting() {
+	fmt.Println("Hello! any toppings yet?")
+}
+
+func (p person) greeting() {
+	fmt.Println("Hello!")
+}
+
+func (p person) fullName() string {
+	if p.last == "" {
+		return p.first
+	}
+	return p.first + " " + p.last
 }
