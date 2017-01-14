@@ -17,7 +17,7 @@ func (m message) String() string {
 func main() {
 	c := make(chan message)
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(1)
 
 	go sender("Foo", c, &wg)
 	go sender("Bar", c, &wg)
@@ -33,6 +33,7 @@ func main() {
 }
 
 func sender(s string, c chan message, wg *sync.WaitGroup) {
+	wg.Add(1)
 	for i := 0; i < 10; i++ {
 		c <- message{s, i}
 	}
