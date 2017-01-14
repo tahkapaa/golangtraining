@@ -9,6 +9,7 @@ import (
 
 var wg sync.WaitGroup
 var counter int
+var m sync.Mutex
 
 func main() {
 	wg.Add(2)
@@ -20,10 +21,11 @@ func main() {
 
 func incrementor(s string) {
 	for i := 0; i < 5; i++ {
+		m.Lock()
 		counter++
 		fmt.Println(s, i, "Counter:", counter)
+		m.Unlock()
 		time.Sleep(time.Duration(rand.Intn(3)) * time.Millisecond)
 	}
-
 	wg.Done()
 }
