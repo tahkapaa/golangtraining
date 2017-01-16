@@ -1,25 +1,40 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/big"
+)
 
 func main() {
-	out := make(chan int64)
-	factorial(20, out)
-	factorial(4, out)
-	factorial(13, out)
-	factorial(2, out)
+	c := factorReceiver(factorial(20), factorial(100), factorial(13), factorial(4))
 
-	for i := 0; i < 4; i++ {
-		fmt.Println("Result:", <-out)
+	for s := range c {
+		fmt.Println("Result:", s)
 	}
 }
 
-func factorial(n int64, out chan int64) {
+func factorial(n int64) <-chan big.Int {
+	out := make(chan big.Int)
 	go func() {
-		total := int64(1)
-		for i := int64(1); i <= n; i++ {
-			total *= i
+		total := big.NewInt(n)
+		for i := big.NewInt(1); i.Cmp(big.NewInt(n)) == -1; i.Add(i, big.NewInt(1)) {
+			total.Mul(total, i)
 		}
-		out <- total
+		out <- *total
+		close(out)
 	}()
+	return out
+}
+
+func factorReceiver(channels ...<-chan big.Int) <-chan string {
+	out := make(chan string)
+	go func() {
+		for _, c := range channels {
+			for n := range c {
+				out <- fmt.Sprint(n)
+			}
+		}
+		close(out)
+	}()
+	return out
 }
