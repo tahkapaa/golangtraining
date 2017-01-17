@@ -21,15 +21,16 @@ func receiver(channels []<-chan int) <-chan string {
 	var wg sync.WaitGroup
 	wg.Add(len(channels))
 
+	for _, ch := range channels {
+		go func(c <-chan int) {
+			for n := range c {
+				out <- fmt.Sprint(n)
+			}
+			wg.Done()
+		}(ch)
+	}
+
 	go func() {
-		for _, ch := range channels {
-			go func(c <-chan int) {
-				for n := range c {
-					out <- fmt.Sprint(n)
-				}
-				wg.Done()
-			}(ch)
-		}
 		wg.Wait()
 		close(out)
 	}()
