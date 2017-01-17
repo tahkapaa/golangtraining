@@ -3,30 +3,35 @@ package main
 import "fmt"
 
 func main() {
-	c1 := incrementor("1")
-	c2 := incrementor("2")
-
-	count := adder(c1, c2)
-
+	c1 := incrementor(2, "1")
+	count := adder(c1)
 	fmt.Println("Final Counter:", count)
 }
 
-func adder(channels ...<-chan int64) int64 {
+func adder(ch <-chan int64) int64 {
 	var count int64
-	for _, ch := range channels {
-		for i := range ch {
-			count += i
-		}
+	for i := range ch {
+		count += i
 	}
 	return count
 }
 
-func incrementor(s string) <-chan int64 {
+func incrementor(n int, s string) <-chan int64 {
 	out := make(chan int64)
+	done := make(chan bool)
+
+	for i := 0; i < n; i++ {
+		go func() {
+			for i := 0; i < 20; i++ {
+				out <- 1
+			}
+			done <- true
+		}()
+	}
+
 	go func() {
-		for i := 0; i < 20; i++ {
-			out <- 1
-			fmt.Println("Process: "+s+" printing:", i)
+		for i := 0; i < n; i++ {
+			<-done
 		}
 		close(out)
 	}()
