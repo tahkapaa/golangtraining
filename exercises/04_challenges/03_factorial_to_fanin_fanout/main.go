@@ -2,30 +2,45 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"sync"
 )
 
 func main() {
-
 	in := gen()
-
 	f := factorial(in)
-
-	for _, ch := range f {
-		go func(c <-chan int) {
-			for n := range c {
-				fmt.Println(n)
-			}
-		}(ch)
+	var i int
+	for s := range receiver(f) {
+		i++
+		fmt.Println(i, s)
 	}
+}
+
+func receiver(channels []<-chan int) <-chan string {
+	out := make(chan string)
+	var wg sync.WaitGroup
+	wg.Add(len(channels))
+
+	go func() {
+		for _, ch := range channels {
+			go func(c <-chan int) {
+				for n := range c {
+					out <- fmt.Sprint(n)
+				}
+				wg.Done()
+			}(ch)
+		}
+		wg.Wait()
+		close(out)
+	}()
+	return out
 }
 
 func gen() <-chan int {
 	out := make(chan int)
 	go func() {
-		for i := 0; i < 10000; i++ {
-			for j := 3; j < 13; j++ {
-				out <- j
-			}
+		for i := 0; i < 50000; i++ {
+			out <- rand.Intn(10) + 3
 		}
 		close(out)
 	}()
@@ -33,21 +48,23 @@ func gen() <-chan int {
 }
 
 func factorial(in <-chan int) []<-chan int {
-	out := make([]<-chan int, 100)
-	for n := range in {
-		out = append(out, fact(n))
+	out := make([]<-chan int, 300)
+	for i := range out {
+		out[i] = fact(in)
 	}
 	return out
 }
 
-func fact(n int) <-chan int {
+func fact(ch <-chan int) <-chan int {
 	out := make(chan int)
 	go func() {
-		total := 1
-		for i := n; i > 0; i-- {
-			total *= i
+		for n := range ch {
+			total := 1
+			for i := n; i > 0; i-- {
+				total *= i
+			}
+			out <- total
 		}
-		out <- total
 		close(out)
 	}()
 	return out
