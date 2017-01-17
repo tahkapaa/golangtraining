@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	c1 := incrementor(2, "1")
+	c1 := incrementor(2)
 	count := adder(c1)
 	fmt.Println("Final Counter:", count)
 }
@@ -16,17 +16,18 @@ func adder(ch <-chan int64) int64 {
 	return count
 }
 
-func incrementor(n int, s string) <-chan int64 {
+func incrementor(n int) <-chan int64 {
 	out := make(chan int64)
 	done := make(chan bool)
 
 	for i := 0; i < n; i++ {
-		go func() {
-			for i := 0; i < 20; i++ {
+		go func(id int) {
+			for j := 0; j < 20; j++ {
+				fmt.Printf("Process: %d printing %d\n", id, j)
 				out <- 1
 			}
 			done <- true
-		}()
+		}(i + 1)
 	}
 
 	go func() {
