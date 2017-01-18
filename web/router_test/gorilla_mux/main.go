@@ -1,29 +1,33 @@
 package main
 
 import (
-	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/tahkapaa/golangtraining/web/router_test/service"
 )
 
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", index)
-	r.HandleFunc("/foo", foo).Methods("GET")
-	r.HandleFunc("/bar", bar)
+	r.HandleFunc("/", service.Index)
+	r.HandleFunc("/persons", service.ListPersons).Methods("GET")
+	r.HandleFunc("/persons", service.AddPerson).Methods("POST")
+
+	s := r.PathPrefix("/persons").Subrouter()
+	s.HandleFunc("/{id}", GetPerson).Methods("GET")
+
 	http.ListenAndServe(":3333", r)
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Index")
-}
-
-func foo(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "foo")
-}
-
-func bar(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "foo")
+// GetPerson ...
+func GetPerson(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	p, err := service.FindPerson(vars["id"])
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println(err)
+	}
+	service.GetPerson(p, w, r)
 }

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
@@ -19,29 +17,21 @@ func main() {
 		r.Get("/", service.ListPersons)
 		r.Post("/persons", service.AddPerson)
 		r.Route("/:personID", func(sr chi.Router) {
-			sr.Use(personCtx)
-			sr.Get("/", service.GetPerson)
+			sr.Use(PersonCtx)
+			sr.Get("/", service.GetPersonFromCtx)
 		})
 	})
 	http.ListenAndServe(":3301", h)
 }
 
-func personCtx(next http.Handler) http.Handler {
+// PersonCtx ...
+func PersonCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		personID, err := strconv.Atoi(chi.URLParam(r, "personID"))
+		personID := chi.URLParam(r, "personID")
+		ctx, err := service.PersonToCtx(personID, w, r)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			log.Println(err)
-			return
 		}
-		log.Printf("PersonID: %d, personcount: %d", personID, len(service.Persons))
-		if personID > len(service.Persons)-1 {
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			log.Println("Invalid person ID")
-			return
-		}
-		p := service.Persons[personID]
-		ctx := context.WithValue(r.Context(), "person", p)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
