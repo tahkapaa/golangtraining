@@ -1,0 +1,5 @@
+{{range .}}
+Hyvää joulua, {{.Name}} - Ikä: {{.Age}}
+
+blah, blah...
+{{end}}
