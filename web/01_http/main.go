@@ -6,10 +6,11 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", foo)
-	http.HandleFunc("/bar", bar)
-	http.HandleFunc("/pasi", pasi)
-	http.ListenAndServe(":3333", nil)
+	h := http.NewServeMux()
+	h.HandleFunc("/", index)
+	h.HandleFunc("/bar", bar)
+	h.HandleFunc("/foo", foo)
+	http.ListenAndServe(":3300", h)
 }
 
 func foo(w http.ResponseWriter, r *http.Request) {
@@ -20,6 +21,6 @@ func bar(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "BAR")
 }
 
-func pasi(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Pasi")
+func index(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "Index")
 }
