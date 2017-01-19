@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -31,15 +32,32 @@ func PersonToCtx(ID string, w http.ResponseWriter, r *http.Request) (context.Con
 	p, err := FindPerson(ID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		log.Println(err)
+		return r.Context(), err
 	}
 	return context.WithValue(r.Context(), "person", p), nil
 }
 
 // ListPersons ...
 func ListPersons(w http.ResponseWriter, r *http.Request) {
+	personsToJSON(Persons, w, r)
+}
+
+// ListFriends everyone is friend to anyone
+func ListFriends(p Person, w http.ResponseWriter, r *http.Request) {
+	fmt.Println(len(Persons), Persons)
+	var friends []Person
+	for _, person := range Persons {
+		if person.ID != p.ID {
+			fmt.Println("Adding", person)
+			friends = append(friends, person)
+		}
+	}
+	personsToJSON(friends, w, r)
+}
+
+func personsToJSON(p []Person, w http.ResponseWriter, r *http.Request) {
 	en := json.NewEncoder(w)
-	err := en.Encode(Persons)
+	err := en.Encode(p)
 	if err != nil {
 		http.Error(w, http.StatusText(500), 500)
 		log.Println(err)
@@ -48,19 +66,28 @@ func ListPersons(w http.ResponseWriter, r *http.Request) {
 
 // GetPersonFromCtx ...
 func GetPersonFromCtx(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	p, ok := ctx.Value("person").(Person)
-	if !ok {
+	p, err := PersonFromCtx(r)
+	if err != nil {
 		http.Error(w, http.StatusText(422), 422)
-		log.Println("Context lost")
+		log.Println(err)
 		return
 	}
 	en := json.NewEncoder(w)
-	err := en.Encode(p)
+	err = en.Encode(p)
 	if err != nil {
 		http.Error(w, http.StatusText(500), 500)
 		log.Println(err)
 	}
+}
+
+// PersonFromCtx ..
+func PersonFromCtx(r *http.Request) (Person, error) {
+	p, ok := r.Context().Value("person").(Person)
+	if !ok {
+		err := errors.New("Context lost")
+		return p, err
+	}
+	return p, nil
 }
 
 // FindPerson ...
@@ -78,8 +105,8 @@ func FindPerson(ID string) (Person, error) {
 	return Persons[pID], nil
 }
 
-// GetPerson ...
-func GetPerson(p Person, w http.ResponseWriter, r *http.Request) {
+// PersonToJSON ...
+func PersonToJSON(p Person, w http.ResponseWriter, r *http.Request) {
 	en := json.NewEncoder(w)
 	err := en.Encode(p)
 	if err != nil {
@@ -95,9 +122,11 @@ func AddPerson(w http.ResponseWriter, r *http.Request) {
 	err := de.Decode(&p)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	p.ID = len(Persons) + 1
 	Persons = append(Persons, p)
+	fmt.Println("Added", p)
 }
 
 // Index ...
