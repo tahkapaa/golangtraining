@@ -56,8 +56,9 @@ func ListFriends(p Person, w http.ResponseWriter, r *http.Request) {
 }
 
 func personsToJSON(p []Person, w http.ResponseWriter, r *http.Request) {
-	en := json.NewEncoder(w)
-	err := en.Encode(p)
+	enc := json.NewEncoder(w)
+	initEncoder(enc, r)
+	err := enc.Encode(p)
 	if err != nil {
 		http.Error(w, http.StatusText(500), 500)
 		log.Println(err)
@@ -107,8 +108,9 @@ func FindPerson(ID string) (Person, error) {
 
 // PersonToJSON ...
 func PersonToJSON(p Person, w http.ResponseWriter, r *http.Request) {
-	en := json.NewEncoder(w)
-	err := en.Encode(p)
+	enc := json.NewEncoder(w)
+	initEncoder(enc, r)
+	err := enc.Encode(p)
 	if err != nil {
 		http.Error(w, http.StatusText(500), 500)
 		log.Println(err)
@@ -132,4 +134,19 @@ func AddPerson(w http.ResponseWriter, r *http.Request) {
 // Index ...
 func Index(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Index")
+}
+
+func initEncoder(en *json.Encoder, r *http.Request) {
+	if isPretty(r) {
+		en.SetIndent("", "  ")
+	}
+}
+
+func isPretty(r *http.Request) bool {
+	// Requires format ?pretty=??? to work
+	pretty := r.URL.Query().Get("pretty")
+	if len(pretty) > 0 {
+		return true
+	}
+	return false
 }
