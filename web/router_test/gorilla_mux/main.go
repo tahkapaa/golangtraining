@@ -16,18 +16,31 @@ func main() {
 	r.HandleFunc("/persons", service.AddPerson).Methods("POST")
 
 	s := r.PathPrefix("/persons").Subrouter()
-	s.HandleFunc("/{id}", GetPerson).Methods("GET")
+	s.HandleFunc("/{id}", getPerson).Methods("GET")
+	fs := s.PathPrefix("/{id}").Subrouter()
+	fs.HandleFunc("/friends", listFriends).Methods("GET")
 
 	http.ListenAndServe(":3333", r)
 }
 
-// GetPerson ...
-func GetPerson(w http.ResponseWriter, r *http.Request) {
+func getPerson(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	p, err := service.FindPerson(vars["id"])
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		log.Println(err)
+		return
 	}
-	service.GetPerson(p, w, r)
+	service.PersonToJSON(p, w, r)
+}
+
+func listFriends(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	p, err := service.FindPerson(vars["id"])
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		log.Println(err)
+		return
+	}
+	service.ListFriends(p, w, r)
 }
