@@ -31,6 +31,8 @@ func PersonCtx(next http.Handler) http.Handler {
 		ctx, err := service.PersonToCtx(personID, w, r)
 		if err != nil {
 			log.Println(err)
+			http.NotFound(w, r)
+			return
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
