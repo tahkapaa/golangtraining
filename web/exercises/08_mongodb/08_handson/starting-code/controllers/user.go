@@ -9,7 +9,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	uuid "github.com/nu7hatch/gouuid"
-	"github.com/tahkapaa/golangtraining/web/exercises/08_mongodb/06_hands-on/starting-code/models"
+	"github.com/tahkapaa/golangtraining/web/exercises/08_mongodb/08_handson/starting-code/models"
 )
 
 type UserController struct {

@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/tahkapaa/golangtraining/web/exercises/08_mongodb/06_hands-on/starting-code/controllers"
+	"github.com/tahkapaa/golangtraining/web/exercises/08_mongodb/08_handson/starting-code/controllers"
 )
 
 func main() {
@@ -14,5 +15,5 @@ func main() {
 	r.GET("/user/:id", uc.GetUser)
 	r.POST("/user", uc.CreateUser)
 	r.DELETE("/user/:id", uc.DeleteUser)
-	http.ListenAndServe("localhost:8080", r)
+	log.Fatalln(http.ListenAndServe("localhost:8080", r))
 }
