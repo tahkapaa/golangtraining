@@ -24,13 +24,20 @@ func main() {
 		panic(err)
 	}
 
+	bs := fetchBooks(db)
+
+	for _, b := range bs {
+		fmt.Printf("%v\n", b)
+	}
+}
+
+func fetchBooks(db *sql.DB) []book {
 	rows, err := db.Query("SELECT * FROM books")
 	if err != nil {
 		panic(err)
 	}
-
 	defer rows.Close()
-	var bs []book
+	bs := make([]book, 0)
 	for rows.Next() {
 		var b book
 		if err := rows.Scan(&b.isbn, &b.title, &b.author, &b.price); err != nil {
@@ -38,8 +45,5 @@ func main() {
 		}
 		bs = append(bs, b)
 	}
-
-	for _, b := range bs {
-		fmt.Printf("%v\n", b)
-	}
+	return bs
 }
