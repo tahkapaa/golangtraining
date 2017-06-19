@@ -32,28 +32,34 @@ func main() {
 
 func getBooks(db *sql.DB) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		bs := fetchBooks(db)
+		bs, err := fetchBooks(db)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		b, err := json.MarshalIndent(bs, " ", "  ")
 		if err != nil {
-			panic(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		w.Write(b)
+		_, err = w.Write(b)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
 
-func fetchBooks(db *sql.DB) []book {
+func fetchBooks(db *sql.DB) ([]book, error) {
 	rows, err := db.Query("SELECT * FROM books")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer rows.Close()
 	bs := make([]book, 0)
 	for rows.Next() {
 		var b book
-		if err := rows.Scan(&b.Isbn, &b.Title, &b.Author, &b.Price); err != nil {
-			panic(err)
+		if err = rows.Scan(&b.Isbn, &b.Title, &b.Author, &b.Price); err != nil {
+			return nil, err
 		}
 		bs = append(bs, b)
 	}
-	return bs
+	return bs, err
 }
